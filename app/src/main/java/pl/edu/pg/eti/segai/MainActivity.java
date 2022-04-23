@@ -1,6 +1,7 @@
 package pl.edu.pg.eti.segai;
 
 import static android.provider.Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION;
+
 import android.Manifest;
 import android.app.Activity;
 import android.content.ContentResolver;
@@ -15,8 +16,8 @@ import android.os.Environment;
 import android.provider.MediaStore;
 import android.view.View;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.Toast;
+
 import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
@@ -25,6 +26,9 @@ import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+
+import com.squareup.picasso.BuildConfig;
+
 import java.io.File;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
@@ -32,20 +36,16 @@ import java.security.GeneralSecurityException;
 
 public class MainActivity extends AppCompatActivity {
 
-    private Button uploadButton;
     private GoogleDriveHandler googleDriveHandler;
     private Uri imageUri;
     private String trashType;
     private AlertDialog.Builder builderTrashTypeForCamera;
     private AlertDialog.Builder builderTrashTypeForDisc;
-    private Uri photoUri;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        uploadButton = (Button) findViewById(R.id.uploadPhotoButton);
 
         checkPermissions();
         createTrashTypeDialogForCamera();
@@ -109,11 +109,6 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 trashType = arrayAdapter.getItem(which);
-
-
-                // Intent imageCaptureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                //imageUri = createImageUri();
-                // imageCaptureIntent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri);
                 try {
                     googleDriveHandler = new GoogleDriveHandler(MainActivity.this);
                     googleDriveHandler.uploadFile(imageUri, trashType);
@@ -167,8 +162,7 @@ public class MainActivity extends AppCompatActivity {
                         } catch (IOException | GeneralSecurityException e) {
                             e.printStackTrace();
                         }
-                    }
-                    else
+                    } else
                         Toast.makeText(MainActivity.this, "Failed", Toast.LENGTH_SHORT).show();
                 }
             });
@@ -218,7 +212,7 @@ public class MainActivity extends AppCompatActivity {
             if (!Environment.isExternalStorageManager()) {
                 Intent intent = new Intent(ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION,
                         Uri.parse("package:" + BuildConfig.APPLICATION_ID));
-                startActivityForResult(intent, 999);
+                startActivity(intent);
             }
         }
     }
