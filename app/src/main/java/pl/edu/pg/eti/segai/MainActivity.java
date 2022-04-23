@@ -36,7 +36,9 @@ public class MainActivity extends AppCompatActivity {
     private GoogleDriveHandler googleDriveHandler;
     private Uri imageUri;
     private String trashType;
-    private AlertDialog.Builder builderTrashType;
+    private AlertDialog.Builder builderTrashTypeForCamera;
+    private AlertDialog.Builder builderTrashTypeForDisc;
+    private Uri photoUri;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,12 +48,13 @@ public class MainActivity extends AppCompatActivity {
         uploadButton = (Button) findViewById(R.id.uploadPhotoButton);
 
         checkPermissions();
-        createTrashTypeDialog();
+        createTrashTypeDialogForCamera();
+        createTrashTypeDialogForDisc();
     }
 
-    private void createTrashTypeDialog() {
-        builderTrashType = new AlertDialog.Builder(this);
-        builderTrashType.setTitle("Select trash type:");
+    private void createTrashTypeDialogForCamera() {
+        builderTrashTypeForCamera = new AlertDialog.Builder(this);
+        builderTrashTypeForCamera.setTitle("Select trash type:");
 
         final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(this, android.R.layout.select_dialog_singlechoice);
         arrayAdapter.add(Constants.TRASH_TYPE_BIO);
@@ -60,14 +63,14 @@ public class MainActivity extends AppCompatActivity {
         arrayAdapter.add(Constants.TRASH_TYPE_GLASS);
         arrayAdapter.add(Constants.TRASH_TYPE_MIXED);
 
-        builderTrashType.setNegativeButton("cancel", new DialogInterface.OnClickListener() {
+        builderTrashTypeForCamera.setNegativeButton("cancel", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 dialog.dismiss();
             }
         });
 
-        builderTrashType.setAdapter(arrayAdapter, new DialogInterface.OnClickListener() {
+        builderTrashTypeForCamera.setAdapter(arrayAdapter, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 trashType = arrayAdapter.getItem(which);
@@ -83,8 +86,70 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    private void createTrashTypeDialogForDisc() {
+        builderTrashTypeForDisc = new AlertDialog.Builder(this);
+        builderTrashTypeForDisc.setTitle("Select trash type:");
+
+        final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(this, android.R.layout.select_dialog_singlechoice);
+        arrayAdapter.add(Constants.TRASH_TYPE_BIO);
+        arrayAdapter.add(Constants.TRASH_TYPE_PLASTIC_METAL);
+        arrayAdapter.add(Constants.TRASH_TYPE_PAPER);
+        arrayAdapter.add(Constants.TRASH_TYPE_GLASS);
+        arrayAdapter.add(Constants.TRASH_TYPE_MIXED);
+
+        builderTrashTypeForDisc.setNegativeButton("cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
+
+        builderTrashTypeForDisc.setAdapter(arrayAdapter, new DialogInterface.OnClickListener() {
+            @RequiresApi(api = Build.VERSION_CODES.O)
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                trashType = arrayAdapter.getItem(which);
+
+
+                // Intent imageCaptureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                //imageUri = createImageUri();
+                // imageCaptureIntent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri);
+                try {
+                    googleDriveHandler = new GoogleDriveHandler(MainActivity.this);
+                    googleDriveHandler.uploadFile(imageUri, trashType);
+                    Toast.makeText(MainActivity.this, "Image sent!", Toast.LENGTH_SHORT).show();
+
+                } catch (IOException | GeneralSecurityException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+    }
+
     public void uploadPhoto(View view) {
-        builderTrashType.show();
+        builderTrashTypeForCamera.show();
+    }
+
+    public void uploadPhotoFromDisc(View view) {
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        //Toast.makeText(MainActivity.this, "xd!", Toast.LENGTH_SHORT).show();
+        intent.setType("*/*");
+        intent.setFlags((Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION));
+        startActivityForResult(intent, 111);
+        builderTrashTypeForDisc.show();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        switch (requestCode) {
+            case 111:
+                if (resultCode == Activity.RESULT_OK) {
+                    imageUri = data.getData();
+                }
+                break;
+        }
     }
 
     ActivityResultLauncher<Intent> photoActivityResultLauncher = registerForActivityResult(
@@ -97,6 +162,7 @@ public class MainActivity extends AppCompatActivity {
                         try {
                             googleDriveHandler = new GoogleDriveHandler(MainActivity.this);
                             googleDriveHandler.uploadFile(imageUri, trashType);
+                            Toast.makeText(MainActivity.this, "Image sent!", Toast.LENGTH_SHORT).show();
 
                         } catch (IOException | GeneralSecurityException e) {
                             e.printStackTrace();
