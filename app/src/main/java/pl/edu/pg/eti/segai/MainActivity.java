@@ -145,7 +145,10 @@ public class MainActivity extends AppCompatActivity {
             case 111:
                 if (resultCode == Activity.RESULT_OK) {
                     imageUri = data.getData();
-                    builderTrashTypeForDisc.show();
+                    if (imageUri.toString().contains("image"))
+                        builderTrashTypeForDisc.show();
+                    else
+                        Toast.makeText(MainActivity.this, "Failed. You didn't choose an image!", Toast.LENGTH_SHORT).show();
                 } else {
                     imageUri = null;
                     Toast.makeText(MainActivity.this, "Failed. You didn't choose any file!", Toast.LENGTH_SHORT).show();
