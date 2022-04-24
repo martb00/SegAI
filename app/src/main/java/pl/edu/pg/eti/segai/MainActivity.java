@@ -109,16 +109,21 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 trashType = arrayAdapter.getItem(which);
-                try {
-                    googleDriveHandler = new GoogleDriveHandler(MainActivity.this);
-                    googleDriveHandler.uploadFile(imageUri, trashType);
-                    Toast.makeText(MainActivity.this, "Image sent!", Toast.LENGTH_SHORT).show();
-
-                } catch (IOException | GeneralSecurityException e) {
-                    e.printStackTrace();
-                }
+                uploadToDrive();
             }
         });
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    private void uploadToDrive() {
+        try {
+            googleDriveHandler = new GoogleDriveHandler(MainActivity.this);
+            googleDriveHandler.uploadFile(imageUri, trashType);
+            Toast.makeText(MainActivity.this, "Image sent!", Toast.LENGTH_SHORT).show();
+
+        } catch (IOException | GeneralSecurityException e) {
+            e.printStackTrace();
+        }
     }
 
     public void uploadPhoto(View view) {
@@ -128,11 +133,9 @@ public class MainActivity extends AppCompatActivity {
     public void uploadPhotoFromDisc(View view) {
         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
         intent.addCategory(Intent.CATEGORY_OPENABLE);
-        //Toast.makeText(MainActivity.this, "xd!", Toast.LENGTH_SHORT).show();
         intent.setType("*/*");
         intent.setFlags((Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION));
         startActivityForResult(intent, 111);
-        builderTrashTypeForDisc.show();
     }
 
     @Override
@@ -142,6 +145,10 @@ public class MainActivity extends AppCompatActivity {
             case 111:
                 if (resultCode == Activity.RESULT_OK) {
                     imageUri = data.getData();
+                    builderTrashTypeForDisc.show();
+                } else {
+                    imageUri = null;
+                    Toast.makeText(MainActivity.this, "Failed. You didn't choose any file!", Toast.LENGTH_SHORT).show();
                 }
                 break;
         }
@@ -154,14 +161,7 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void onActivityResult(ActivityResult result) {
                     if (result.getResultCode() == Activity.RESULT_OK) {
-                        try {
-                            googleDriveHandler = new GoogleDriveHandler(MainActivity.this);
-                            googleDriveHandler.uploadFile(imageUri, trashType);
-                            Toast.makeText(MainActivity.this, "Image sent!", Toast.LENGTH_SHORT).show();
-
-                        } catch (IOException | GeneralSecurityException e) {
-                            e.printStackTrace();
-                        }
+                        uploadToDrive();
                     } else
                         Toast.makeText(MainActivity.this, "Failed", Toast.LENGTH_SHORT).show();
                 }
