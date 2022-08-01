@@ -37,4 +37,10 @@ public class MainActivity extends AppCompatActivity {
                 });
         adb.create().show();
     }
+
+    //TODO delte
+    public void resultView(View view) {
+        Intent intent = new Intent(this, ResultActivity.class);
+        startActivity(intent);
+    }
 }

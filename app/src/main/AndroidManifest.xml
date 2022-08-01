@@ -19,6 +19,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.SegAI">
         <activity
+            android:name=".ResultActivity"
+            android:exported="false" />
+        <activity
             android:name=".MainActivity"
             android:exported="true">
             <intent-filter>
@@ -31,4 +34,5 @@
             android:name=".DataCollectingActivity"
             android:exported="true" />
     </application>
+
 </manifest>
