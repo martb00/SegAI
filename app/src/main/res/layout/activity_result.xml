@@ -8,8 +8,8 @@
 
     <TextView
         android:id="@+id/textViewResult"
-        android:layout_width="302dp"
-        android:layout_height="168dp"
+        android:layout_width="405dp"
+        android:layout_height="82dp"
         android:layout_marginTop="104dp"
         android:gravity="center"
         android:textSize="20sp"
@@ -32,6 +32,16 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textViewResult"
         app:layout_constraintVertical_bias="1.0" />
+
+    <ImageView
+        android:id="@+id/imageView"
+        android:layout_width="184dp"
+        android:layout_height="171dp"
+        app:layout_constraintBottom_toTopOf="@+id/backButton"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textViewResult"
+        app:srcCompat="@android:drawable/ic_menu_gallery" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>
