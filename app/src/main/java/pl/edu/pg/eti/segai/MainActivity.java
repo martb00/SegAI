@@ -6,7 +6,6 @@ import android.Manifest;
 import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.ContentValues;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
@@ -29,11 +28,11 @@ import androidx.core.app.ActivityCompat;
 
 import com.squareup.picasso.BuildConfig;
 
-import java.io.File;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 
 
+@RequiresApi(api = Build.VERSION_CODES.O)
 public class MainActivity extends AppCompatActivity {
 
     private GoogleDriveHandler googleDriveHandler;
@@ -42,6 +41,7 @@ public class MainActivity extends AppCompatActivity {
     private AlertDialog.Builder builderTrashTypeForCamera;
     private AlertDialog.Builder builderTrashTypeForDisc;
 
+    @RequiresApi(api = Build.VERSION_CODES.Q)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -52,6 +52,7 @@ public class MainActivity extends AppCompatActivity {
         createTrashTypeDialogForDisc();
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.Q)
     private void createTrashTypeDialogForCamera() {
         builderTrashTypeForCamera = new AlertDialog.Builder(this);
         builderTrashTypeForCamera.setTitle("Select trash type:");
@@ -63,25 +64,17 @@ public class MainActivity extends AppCompatActivity {
         arrayAdapter.add(Constants.TRASH_TYPE_GLASS);
         arrayAdapter.add(Constants.TRASH_TYPE_MIXED);
 
-        builderTrashTypeForCamera.setNegativeButton("cancel", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.dismiss();
-            }
-        });
+        builderTrashTypeForCamera.setNegativeButton("cancel", (dialog, which) -> dialog.dismiss());
 
-        builderTrashTypeForCamera.setAdapter(arrayAdapter, new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                trashType = arrayAdapter.getItem(which);
-                try {
-                    Intent imageCaptureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                    imageUri = createImageUri();
-                    imageCaptureIntent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri);
-                    photoActivityResultLauncher.launch(imageCaptureIntent);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+        builderTrashTypeForCamera.setAdapter(arrayAdapter, (dialog, which) -> {
+            trashType = arrayAdapter.getItem(which);
+            try {
+                Intent imageCaptureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                imageUri = createImageUri();
+                imageCaptureIntent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri);
+                photoActivityResultLauncher.launch(imageCaptureIntent);
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         });
     }
@@ -97,20 +90,11 @@ public class MainActivity extends AppCompatActivity {
         arrayAdapter.add(Constants.TRASH_TYPE_GLASS);
         arrayAdapter.add(Constants.TRASH_TYPE_MIXED);
 
-        builderTrashTypeForDisc.setNegativeButton("cancel", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.dismiss();
-            }
-        });
+        builderTrashTypeForDisc.setNegativeButton("cancel", (dialog, which) -> dialog.dismiss());
 
-        builderTrashTypeForDisc.setAdapter(arrayAdapter, new DialogInterface.OnClickListener() {
-            @RequiresApi(api = Build.VERSION_CODES.O)
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                trashType = arrayAdapter.getItem(which);
-                uploadToDrive();
-            }
+        builderTrashTypeForDisc.setAdapter(arrayAdapter, (dialog, which) -> {
+            trashType = arrayAdapter.getItem(which);
+            uploadToDrive();
         });
     }
 
@@ -135,47 +119,46 @@ public class MainActivity extends AppCompatActivity {
         intent.addCategory(Intent.CATEGORY_OPENABLE);
         intent.setType("*/*");
         intent.setFlags((Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION));
-        startActivityForResult(intent, 111);
+        uploadPhotoFromDiscActivityResultLauncher.launch(intent);
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        switch (requestCode) {
-            case 111:
-                if (resultCode == Activity.RESULT_OK) {
-                    imageUri = data.getData();
-                    if (imageUri.toString().contains("image"))
-                        builderTrashTypeForDisc.show();
-                    else
-                        Toast.makeText(MainActivity.this, "Failed. You didn't choose an image!", Toast.LENGTH_SHORT).show();
-                } else {
-                    imageUri = null;
-                    Toast.makeText(MainActivity.this, "Failed. You didn't choose any file!", Toast.LENGTH_SHORT).show();
-                }
-                break;
-        }
-    }
 
-    ActivityResultLauncher<Intent> photoActivityResultLauncher = registerForActivityResult(
+    ActivityResultLauncher<Intent> uploadPhotoFromDiscActivityResultLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             new ActivityResultCallback<ActivityResult>() {
-                @RequiresApi(api = Build.VERSION_CODES.O)
                 @Override
                 public void onActivityResult(ActivityResult result) {
                     if (result.getResultCode() == Activity.RESULT_OK) {
-                        uploadToDrive();
-                    } else
-                        Toast.makeText(MainActivity.this, "Failed", Toast.LENGTH_SHORT).show();
+                        Intent data = result.getData();
+                        imageUri = data != null ? data.getData() : null;
+                        if (imageUri != null && imageUri.toString().contains("image"))
+                            builderTrashTypeForDisc.show();
+                        else
+                            Toast.makeText(MainActivity.this, "Failed. You didn't choose an image!", Toast.LENGTH_SHORT).show();
+                    } else {
+                        imageUri = null;
+                        Toast.makeText(MainActivity.this, "Failed. You didn't choose any file!", Toast.LENGTH_SHORT).show();
+                    }
                 }
             });
 
+
+    ActivityResultLauncher<Intent> photoActivityResultLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() == Activity.RESULT_OK) {
+                    uploadToDrive();
+                } else
+                    Toast.makeText(MainActivity.this, "Failed", Toast.LENGTH_SHORT).show();
+            });
+
+    @RequiresApi(api = Build.VERSION_CODES.Q)
     private Uri createImageUri() throws IOException {
 
         long timeStamp = System.currentTimeMillis();
         String imageFileName = "img_" + timeStamp;
-        File storageDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
-        File image = File.createTempFile(imageFileName, Constants.EXTENSION_PHOTOS, storageDir);
+        // File storageDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
+        // File image = File.createTempFile(imageFileName, Constants.EXTENSION_PHOTOS, storageDir);
 
         Uri uri = null;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
@@ -198,7 +181,6 @@ public class MainActivity extends AppCompatActivity {
             ActivityCompat.requestPermissions(this,
                     new String[]{Manifest.permission.CAMERA}, 0);
         }
-
         if (ActivityCompat.checkSelfPermission(this,
                 Manifest.permission.INTERNET) !=
                 PackageManager.PERMISSION_GRANTED) {
@@ -225,17 +207,9 @@ public class MainActivity extends AppCompatActivity {
         AlertDialog.Builder adb = new AlertDialog.Builder(this);
         adb.setTitle("Close app?");
         adb.setPositiveButton("YES",
-                new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        MainActivity.super.onBackPressed();
-                    }
-                });
+                (dialog, which) -> MainActivity.super.onBackPressed());
         adb.setNegativeButton("NO",
-                new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                    }
+                (dialog, which) -> {
                 });
         adb.create().show();
     }
