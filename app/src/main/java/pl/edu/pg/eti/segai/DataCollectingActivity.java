@@ -204,17 +204,8 @@ public class DataCollectingActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        AlertDialog.Builder adb = new AlertDialog.Builder(this);
-        adb.setTitle("Exit data collecting mode?");
-        adb.setPositiveButton("YES",
-                (dialog, which) -> {
-                    Intent intent = new Intent(this, MainActivity.class);
-                    startActivity(intent);
-                });
-        adb.setNegativeButton("NO",
-                (dialog, which) -> {
-                });
-        adb.create().show();
+        Intent intent = new Intent(this, MainActivity.class);
+        startActivity(intent);
     }
 }
 
