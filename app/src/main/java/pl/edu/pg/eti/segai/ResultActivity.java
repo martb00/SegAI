@@ -4,6 +4,7 @@ import static java.lang.Character.toChars;
 
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.View;
@@ -12,8 +13,12 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 
 public class ResultActivity extends AppCompatActivity {
 
@@ -30,7 +35,7 @@ public class ResultActivity extends AppCompatActivity {
         resultInfo = findViewById(R.id.textViewResult);
         Button backButton = findViewById(R.id.backButton);
         backButton.setText(new String(toChars(0x1F519)));
-        ImageView imageView = findViewById(R.id.imageView);
+        imageView = findViewById(R.id.imageView);
         resultInfo.setVisibility(View.INVISIBLE);
         Bundle extras = getIntent().getExtras();
         if (extras != null) {
@@ -52,20 +57,21 @@ public class ResultActivity extends AppCompatActivity {
         resultInfo.setVisibility(View.VISIBLE);
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     public void onBackPressed() {
+        moveTaskToBack (true);
         backToMainActivity(null);
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     public void backToMainActivity(View view) {
         AlertDialog.Builder adb = new AlertDialog.Builder(this);
         adb.setTitle("Can we save your photo to improve our model?");
         adb.setPositiveButton("YES",
                 (dialog, which) -> {
-                    //TODO: SAVE PHOTO with category!!!
                     Intent intent = new Intent(this, MainActivity.class);
                     startActivity(intent);
-                    Toast.makeText(ResultActivity.this, "Thanks!", Toast.LENGTH_SHORT).show();
                 });
         adb.setNegativeButton("NO",
                 (dialog, which) -> {
@@ -73,5 +79,18 @@ public class ResultActivity extends AppCompatActivity {
                     startActivity(intent);
                 });
         adb.create().show();
+    }
+
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    private void uploadToDrive() {
+        try {
+            GoogleDriveHandler googleDriveHandler = new GoogleDriveHandler(ResultActivity.this);
+            googleDriveHandler.uploadFile(imageUri, type); // todo: change folder ?
+            Toast.makeText(ResultActivity.this, "Image sent, thanks!", Toast.LENGTH_SHORT).show();
+
+        } catch (IOException | GeneralSecurityException e) {
+            e.printStackTrace();
+        }
     }
 }

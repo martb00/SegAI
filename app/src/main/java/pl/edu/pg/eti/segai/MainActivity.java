@@ -4,13 +4,14 @@ import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Intent;
+import android.content.res.AssetFileDescriptor;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.view.View;
 import android.widget.Toast;
-
+import org.tensorflow.lite.Interpreter;
 import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
@@ -19,18 +20,36 @@ import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.MappedByteBuffer;
+import java.nio.channels.FileChannel;
 import java.util.Random;
 
 public class MainActivity extends AppCompatActivity {
 
     private GoogleDriveHandler googleDriveHandler;
     private Uri imageUri;
+    Interpreter tflite;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        try{
+            tflite = new Interpreter(loadModelFile());
+        }catch (Exception ex){
+            ex.printStackTrace();
+        }
+    }
+
+    private MappedByteBuffer loadModelFile() throws IOException{
+        AssetFileDescriptor fileDescriptor = this.getAssets().openFd("tf_lite_optimized_model.tflite");
+        FileInputStream inputStream = new FileInputStream(fileDescriptor.getFileDescriptor());
+        FileChannel fileChannel = inputStream.getChannel();
+        long startOffset = fileDescriptor.getStartOffset();
+        long declaredLength = fileDescriptor.getDeclaredLength();
+        return  fileChannel.map(FileChannel.MapMode.READ_ONLY, startOffset, declaredLength);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.Q)
@@ -52,12 +71,18 @@ public class MainActivity extends AppCompatActivity {
 
 
     private void calculateAndReturnResult() {
-        //  TODO: AI MAGIC now we generate random values
+       // String type = doAiMagic(imageUri);// todo: use this type and fix using it
         Intent intent = new Intent(this, ResultActivity.class);
         intent.putExtra("type", randomType());
         intent.putExtra("probability", randomProbability());
         intent.putExtra("imageUri", imageUri.toString());
         startActivity(intent);
+    }
+
+    private String doAiMagic(Uri imageUri) { //todo: run this in proper way
+        String result = new String();
+        tflite.run(imageUri, result);
+        return result;
     }
 
 
@@ -140,11 +165,11 @@ public class MainActivity extends AppCompatActivity {
 
     private String randomType() {
         String[] results = {
-                "BIO",
-                "PLASTIC/METAL",
-                "PAPER",
-                "GLASS",
-                "MIXED"};
+                Constants.TRASH_TYPE_BIO,
+                Constants.TRASH_TYPE_PLASTIC_METAL,
+                Constants.TRASH_TYPE_PAPER,
+                Constants.TRASH_TYPE_GLASS,
+                Constants.TRASH_TYPE_MIXED};
         Random r = new Random();
         return results[r.nextInt(results.length)];
     }
