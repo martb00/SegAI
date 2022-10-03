@@ -60,7 +60,7 @@ public class ResultActivity extends AppCompatActivity {
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     public void onBackPressed() {
-        moveTaskToBack (true);
+        moveTaskToBack(true);
         backToMainActivity(null);
     }
 
@@ -70,6 +70,7 @@ public class ResultActivity extends AppCompatActivity {
         adb.setTitle("Can we save your photo to improve our model?");
         adb.setPositiveButton("YES",
                 (dialog, which) -> {
+                    uploadToDrive();
                     Intent intent = new Intent(this, MainActivity.class);
                     startActivity(intent);
                 });
@@ -86,7 +87,7 @@ public class ResultActivity extends AppCompatActivity {
     private void uploadToDrive() {
         try {
             GoogleDriveHandler googleDriveHandler = new GoogleDriveHandler(ResultActivity.this);
-            googleDriveHandler.uploadFile(imageUri, type); // todo: change folder ?
+            googleDriveHandler.uploadFile(imageUri, type, true); // todo: change folder ?
             Toast.makeText(ResultActivity.this, "Image sent, thanks!", Toast.LENGTH_SHORT).show();
 
         } catch (IOException | GeneralSecurityException e) {

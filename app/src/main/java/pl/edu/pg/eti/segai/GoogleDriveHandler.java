@@ -5,7 +5,9 @@ import android.content.Context;
 import android.net.Uri;
 import android.os.Build;
 import android.os.StrictMode;
+
 import androidx.annotation.RequiresApi;
+
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
@@ -16,6 +18,7 @@ import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.DriveScopes;
 import com.google.api.services.drive.model.File;
+
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -43,20 +46,36 @@ public class GoogleDriveHandler {
         return GoogleCredential.fromStream(in).createScoped(SCOPES);
     }
 
-    private String getDriveFolderId(String trashType) {
+    private String getDriveFolderIdCollectingMode(String trashType) {
         switch (trashType) {
             case Constants.TRASH_TYPE_BIO:
-                return Constants.DRIVE_FOLDER_BIO;
+                return Constants.DRIVE_BIO_COLLECTING_MODE;
             case Constants.TRASH_TYPE_MIXED:
-                return Constants.DRIVE_FOLDER_MIXED;
+                return Constants.DRIVE_MIXED_COLLECTING_MODE;
             case Constants.TRASH_TYPE_PAPER:
-                return Constants.DRIVE_FOLDER_PAPER;
+                return Constants.DRIVE_PAPER_COLLECTING_MODE;
             case Constants.TRASH_TYPE_PLASTIC_METAL:
-                return Constants.DRIVE_FOLDER_PLASTIC_METAL;
+                return Constants.DRIVE_PLASTIC_METAL_COLLECTING_MODE;
             case Constants.TRASH_TYPE_GLASS:
-                return Constants.DRIVE_FOLDER_GLASS;
+                return Constants.DRIVE_GLASS_COLLECTING_MODE;
             default:
-                return Constants.DRIVE_FOLDER_ROOT;
+                return Constants.DRIVE_ROOT;
+        }
+    }
+    private String getDriveFolderIdForResult(String trashType) {
+        switch (trashType) {
+            case Constants.TRASH_TYPE_BIO:
+                return Constants.DRIVE_BIO_RESULT;
+            case Constants.TRASH_TYPE_MIXED:
+                return Constants.DRIVE_MIXED_RESULT;
+            case Constants.TRASH_TYPE_PAPER:
+                return Constants.DRIVE_PAPER_RESULT;
+            case Constants.TRASH_TYPE_PLASTIC_METAL:
+                return Constants.DRIVE_PLASTIC_METAL_RESULT;
+            case Constants.TRASH_TYPE_GLASS:
+                return Constants.DRIVE_GLASS_RESULT;
+            default:
+                return Constants.DRIVE_ROOT;
         }
     }
 
@@ -69,7 +88,7 @@ public class GoogleDriveHandler {
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
-    public void uploadFile(Uri imageUri, String trashType) throws IOException {
+    public void uploadFile(Uri imageUri, String trashType, boolean result) throws IOException {
 
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder()
                 .permitAll().build();
@@ -82,7 +101,11 @@ public class GoogleDriveHandler {
 
         File fileMetadata = new File();
         fileMetadata.setName(UUID.randomUUID().toString());
-        fileMetadata.setParents(Collections.singletonList(getDriveFolderId(trashType)));
+        if (result) {
+            fileMetadata.setParents(Collections.singletonList(getDriveFolderIdForResult(trashType)));
+        } else {
+            fileMetadata.setParents(Collections.singletonList(getDriveFolderIdCollectingMode(trashType)));
+        }
         FileContent mediaContent = new FileContent(Constants.MIME_TYPE_PHOTOS, imageFile);
         service.files().create(fileMetadata, mediaContent)
                 .setFields("id")

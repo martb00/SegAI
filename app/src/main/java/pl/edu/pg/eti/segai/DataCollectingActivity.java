@@ -102,7 +102,7 @@ public class DataCollectingActivity extends AppCompatActivity {
     private void uploadToDrive() {
         try {
             googleDriveHandler = new GoogleDriveHandler(DataCollectingActivity.this);
-            googleDriveHandler.uploadFile(imageUri, trashType);
+            googleDriveHandler.uploadFile(imageUri, trashType, false);
             Toast.makeText(DataCollectingActivity.this, "Image sent!", Toast.LENGTH_SHORT).show();
 
         } catch (IOException | GeneralSecurityException e) {
