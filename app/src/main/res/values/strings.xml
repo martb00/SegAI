@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">segAI</string>
+    <string name="result_info">This result is just a suggestion. Make decisions about segregation carefully, and follow the rules in your locality.\nRemember that electrical waste, medicines and other hazardous waste should not be thrown into ordinary garbage cans.</string>
+    <string name="upload_disc">upload photo from disc</string>
+    <string name="upload_camera">upload photo from camera</string>
+    <string name="welcome">Welcome in our waste segregation app!</string>
+    <string name="back">back</string>
 </resources>

@@ -4,44 +4,63 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+<<<<<<< Updated upstream
     tools:context=".MainActivity">
+=======
+    tools:context=".activities.MainActivity">
+>>>>>>> Stashed changes
 
     <TextView
         android:id="@+id/textView"
-        android:layout_width="280dp"
-        android:layout_height="59dp"
+        android:layout_width="332dp"
+        android:layout_height="180dp"
         android:layout_marginTop="100dp"
         android:gravity="center"
+<<<<<<< Updated upstream
         android:text="Welcome in segAI!"
+=======
+        android:text="@string/welcome"
+        android:textSize="20sp"
+        app:drawableRightCompat="@drawable/segaiicon"
+>>>>>>> Stashed changes
         app:layout_constraintHorizontal_bias="0.493"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+<<<<<<< Updated upstream
 
     <Button
         android:id="@+id/uploadPhotoButton"
+=======
+    <Button
+        android:id="@+id/uploadPhotoCamera"
+>>>>>>> Stashed changes
         android:layout_width="201dp"
         android:layout_height="66dp"
         android:onClick="uploadPhoto"
-        android:text="upload photo from camera"
+        android:text="@string/upload_camera"
+        android:drawableLeft="@drawable/ic_baseline_photo_camera_24"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.497"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textView" />
+<<<<<<< Updated upstream
 
+=======
+>>>>>>> Stashed changes
     <Button
         android:id="@+id/uploadPhotoButton2"
         android:layout_width="201dp"
         android:layout_height="66dp"
         android:layout_marginTop="24dp"
         android:onClick="uploadPhotoFromDisc"
-        android:text="upload photo from disc"
+        android:text="@string/upload_disc"
+        android:drawableLeft="@drawable/ic_baseline_folder_24"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/uploadPhotoButton"
         app:layout_constraintVertical_bias="0.259" />
-
 
 </androidx.constraintlayout.widget.ConstraintLayout>
